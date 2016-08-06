@@ -1,13 +1,10 @@
-from ansible.runner.return_data import ReturnData
+from ansible.plugins.action import ActionBase
 
 
-class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
-
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-        result = {"failed": False, "changed": False}
-        result.update(inject)
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result=result)
+class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        # Get the current context
+        all_variables = self._templar.template('{{vars}}')
+        # Set an arbitrary value- just to show that we can
+        all_variables['foo'] = 'bar'
+        return all_variables
