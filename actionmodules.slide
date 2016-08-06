@@ -246,12 +246,14 @@ Have you ever wondered how it works?
 Have you ever wondered how it works?
 
     # template the source data locally & get ready to transfer
-    resultant = template.template_from_file(self.runner.basedir, source, inject)
+    resultant = self._templar.template(template_data, preserve_trailing_newlines=True, escape_backslashes=False, convert_data=False)
     ...
-    res = self.runner._execute_module(conn, tmp, 'copy', module_args_tmp)
-    if res.result.get('changed', False):
-        res.diff = dict(before=dest_contents, after=resultant)
-    return res
+    result.update(self._execute_module(module_name='copy', module_args=new_module_args, task_vars=task_vars, tmp=tmp, delete_remote_tmp=False))
+    ...
+    if result.get('changed', False) and self._play_context.diff:
+        result['diff'] = diff
+    return result
+
 
 * Hello World
 
@@ -272,16 +274,12 @@ in action_plugins/hello.py:
 
 in action_plugins/hello.py:
 
-    from ansible.runner.return_data import ReturnData
-    
-    class ActionModule(object):
-        def __init__(self, runner):
-            self.runner = runner
-    
-        def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-            return ReturnData(conn=conn,
-                              comm_ok=True,
-                              result=dict(failed=False, changed=False, msg="Hello World"))
+    from ansible.plugins.action import ActionBase
+
+    class ActionModule(ActionBase):
+        def run(self, tmp=None, task_vars=None):
+            return dict(msg="Hello World", _ansible_verbose_always=True)
+
 
 a file called library/hello
 
@@ -311,11 +309,12 @@ You can also divide the work into action plugin/module concerns
 
 * Tying Action Plugins Together
 
-    from ansible.runner.action_plugins.synchronize import ActionModule as Sync
+    from ansible.plugins.action.synchronize import ActionModule as Sync
 
 * Tying Action Plugins Together
 
-    from ansible.runner.action_plugins.synchronize import ActionModule as Sync
+    from ansible.plugins.action.synchronize import ActionModule as Sync
+
 
 Usage requires some boilerplate:
 
