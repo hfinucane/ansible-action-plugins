@@ -326,61 +326,77 @@ Usage requires some boilerplate:
                 self._shared_loader_obj)
     sync_result = sync.run(tmp=tmp, task_vars=task_vars)
 
-* Inject
+* Accessing global variables
 
-`inject` is the current set of Ansible variables
+I don't have a non-hacky method for this in Ansible 2, but the following will work:
 
-    def run(self, conn, tmp, module_name, module_args [...]
-        result = {"failed": False, "changed": False}
-        result.update(inject)
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result=result)
+* Accessing global variables
 
+    all_variables = self._templar.template('{{vars}}')
 
-    localhost | success >> {
-        "ansible_ssh_user": "hank", 
-        "defaults": {}, 
-        "environment": null, 
-        "failed": false, 
-        "group_names": [], 
-        "groups": {
-            "all": [
-                "localhost"
-    [...]
+* Accessing global variables
 
-* My favorite API signature
+    all_variables = self._templar.template('{{vars}}')
 
-    from ansible.callbacks import vv, vvv, vvvv
+This abuses Ansible's support for `debug: var=vars`, so it's likely to keep
+working, but asking the templating system to give you the current context, and
+assuming it will come out as a structure instead of a string is a definitely
+straddling a line.
 
 * Logging
 
-    from ansible.callbacks import vv, vvv, vvvv
-    vv('log a message')
-    vvv('log something maybe a bit less important')
+First step, get access to the current logging object, called "display"
+
+    try:
+        from __main__ import display
+    except ImportError:
+        from ansible.utils.display import Display
+        display = Display()
+
+* Logging
+
+    display.vv('log a message')
+    display.vvv('log something maybe a bit less important')
+
+Corresponds to `-vv` or `-vvv` on the command line.
 
 * Logging
 
 You can support arbitrarily large numbers of Vs
 
-    from ansible.callbacks import verbose
-    def vvvvv(msg, host=None):
-        return verbose(msg, host=host, caplevel=4)
+    display.verbose("Super custom verbosity", caplevel=42)
 
 * Diff mode
 
-Minimum viable action plugin:
+Ansible 2.0 supports diff mode in regular modules:
 
-    class ActionModule(object):
-        def __init__(self, runner):
-            self.runner = runner
+    #!/usr/bin/python
 
-        def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):       
-            return ReturnData(conn=conn,
-                              comm_ok=True,
-                              result=dict(failed=False),
-                              diff=dict(before="foo\nbar",
-                                        after="bar"))
+    print r'{"failed": false, "changed": true, "diff": {"before": "fee\nfo\nfum\n", "after": "fee\nfi\nfum\n"}}'
+
+gives you
+
+    changed: [localhost]
+    --- before
+    +++ after
+    @@ -1,3 +1,3 @@
+     fee
+    -fo
+    +fi
+     fum
+
+
+* Diff mode
+
+Everything is done above the level of an individual action module, so you don't
+have to do anything special here either:
+
+    class ActionModule(ActionBase):
+        def run(self, tmp=None, task_vars=None):
+            # If there's no change, Ansible assumes there can be no diff
+            return {'changed': True, 'diff': { 'before': 'foo\nbar', 'after': 'bar' } }
+
+
 Gives you
 
     --- before
@@ -395,18 +411,15 @@ Gives you
 
 The synchronize action module will actually change your transport in flight:
 
-    # Store original transport and sudo values.
-    self.original_transport = inject.get('ansible_connection', self.runner.transport)          
-    self.original_sudo = self.runner.sudo
-    self.transport_overridden = False
+    if not use_delegate and remote_transport:
+        new_stdin = self._connection._new_stdin
+        ...
+        new_connection = connection_loader.get('local', self._play_context, new_stdin)
+        self._connection = new_connection
 
-    if inject.get('delegate_to') is None:
-        inject['delegate_to'] = '127.0.0.1'
-        # IF original transport is not local, override transport and disable sudo.             
-        if self.original_transport != 'local':
-            inject['ansible_connection'] = 'local'
-            self.transport_overridden = True
-            self.runner.sudo = False
+    ... 
+    self._execute_module('synchronize', task_vars=task_vars)
+
 
 * Connection Magic
 
@@ -440,17 +453,10 @@ In ansible.cfg:
 
 * Connection Magic for SSH
 
-    class ActionModule(object):
-        def __init__(self, runner):
-            self.runner = runner
+Run ping, but with no ControlPersist:
 
-            if C.ANSIBLE_SSH_ARGS is not None and len(C.ANSIBLE_SSH_ARGS):
-                # __init__ gets evaluated twice, and the latter in a nested context,
-                # so ignore both None and the empty string
-                self.runner.connector = connection.Connector(self.runner)
-
-            self.old_ssh_args = C.ANSIBLE_SSH_ARGS
-            C.ANSIBLE_SSH_ARGS = ""
-        def __del__(self):
-            C.ANSIBLE_SSH_ARGS = self.old_ssh_args
-        def run(): # ship your module
+    class ActionModule(ActionBase):
+        def run(self, tmp=None, task_vars=None):
+            self._play_context.ssh_args = ''
+            result = self._execute_module('ping', task_vars=task_vars)
+            return result
