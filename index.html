@@ -1,9 +1,32 @@
 <!DOCTYPE html>
-<!-- saved from url=(0043)http://127.0.0.1:3999/actionmodules.slide#1 -->
+<!-- saved from url=(0043)http://localhost:3999/actionmodules.slide#1 -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Advanced Ansible</title>
-    <meta charset="utf-8">
+    
+    <script>
+      var notesEnabled =  false ;
+    </script>
     <script src="./index_files/slides.js"></script>
+
+    
+
+    <script>
+      
+      if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+        var _gaq = _gaq || [];
+        _gaq.push(["_setAccount", "UA-11222381-6"]);
+        _gaq.push(["b._setAccount", "UA-49880327-6"]);
+        window.trackPageview = function() {
+          _gaq.push(["_trackPageview", location.pathname+location.hash]);
+          _gaq.push(["b._trackPageview", location.pathname+location.hash]);
+        };
+        window.trackPageview();
+        window.trackEvent = function(category, action, opt_label, opt_value, opt_noninteraction) {
+          _gaq.push(["_trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+          _gaq.push(["b._trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+        };
+      }
+    </script>
   <meta name="viewport" content="width=1100,height=750"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 
   <body style="display: none" class="loaded">
@@ -14,10 +37,6 @@
         <h1>Advanced Ansible</h1>
         <h3>Action Modules for Fun And Profit</h3>
         
-        
-          <div class="presenter">
-            
-          </div>
         
           <div class="presenter">
             
@@ -77,7 +96,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -108,7 +127,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -131,7 +150,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>Python</h3>
         
@@ -145,7 +164,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -162,7 +181,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>Python &amp; YAML</h3>
         
@@ -190,7 +209,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -215,7 +234,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -238,7 +257,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -269,7 +288,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -284,7 +303,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -305,7 +324,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -332,7 +351,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>YAML</h3>
         
@@ -365,7 +384,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h2>Modules</h2>
       
@@ -373,7 +392,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h2>Modules Are Great</h2>
       
@@ -381,7 +400,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>Really easy to write</h3>
         
@@ -398,7 +417,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>Modules can't do everything</h3>
         
@@ -421,7 +440,7 @@
 
   
   <p>
-    But if you're going to do this a lot- or every time, like fetch
+    But if you're going to do this a lot...
   </p>
   
 
@@ -430,7 +449,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>Modules can't run on the host and the remote</h3>
         
@@ -446,7 +465,7 @@
 
 - synchronize: src={{cf|dest}} dest=/var/tmp/cf
 
-- funky_setup: src=/var/tmp/cf</pre></div>
+- setup: src=/var/tmp/cf</pre></div>
   
 
       
@@ -454,15 +473,15 @@
   
   
   
-      <article class="">
+      <article>
       
-        <h2>Warning: Theorizing Ahead</h2>
+        <h2>Warning: Theorizing ahead</h2>
       
       </article>
   
   
   
-      <article class="">
+      <article>
       
         <h3>API Matters</h3>
         
@@ -477,7 +496,7 @@
   
   
   
-      <article class="">
+      <article>
       
         <h3>API Matters</h3>
         
@@ -735,12 +754,13 @@
 
   
   <div class="code"><pre># template the source data locally &amp; get ready to transfer
-resultant = template.template_from_file(self.runner.basedir, source, inject)
+resultant = self._templar.template(template_data, preserve_trailing_newlines=True, escape_backslashes=False, convert_data=False)
 ...
-res = self.runner._execute_module(conn, tmp, 'copy', module_args_tmp)
-if res.result.get('changed', False):
-    res.diff = dict(before=dest_contents, after=resultant)
-return res</pre></div>
+result.update(self._execute_module(module_name='copy', module_args=new_module_args, task_vars=task_vars, tmp=tmp, delete_remote_tmp=False))
+...
+if result.get('changed', False) and self._play_context.diff:
+    result['diff'] = diff
+return result</pre></div>
   
 
       
@@ -787,16 +807,11 @@ class ActionModule(object):
   
 
   
-  <div class="code"><pre>from ansible.runner.return_data import ReturnData
+  <div class="code"><pre>from ansible.plugins.action import ActionBase
 
-class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
-
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result=dict(failed=False, changed=False, msg="Hello World"))</pre></div>
+class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        return dict(msg="Hello World", _ansible_verbose_always=True)</pre></div>
   
 
   
@@ -882,7 +897,7 @@ localhost | success &gt;&gt; {
         <h3>Tying Action Plugins Together</h3>
         
   
-  <div class="code"><pre>from ansible.runner.action_plugins.synchronize import ActionModule as Sync</pre></div>
+  <div class="code"><pre>from ansible.plugins.action.synchronize import ActionModule as Sync</pre></div>
   
 
       
@@ -895,7 +910,7 @@ localhost | success &gt;&gt; {
         <h3>Tying Action Plugins Together</h3>
         
   
-  <div class="code"><pre>from ansible.runner.action_plugins.synchronize import ActionModule as Sync</pre></div>
+  <div class="code"><pre>from ansible.plugins.action.synchronize import ActionModule as Sync</pre></div>
   
 
   
@@ -905,12 +920,13 @@ localhost | success &gt;&gt; {
   
 
   
-  <div class="code"><pre>sync = Sync(self.runner)
-sync_result = sync.run(conn,
-                       tmp="/tmp",
-                       module_name="synchronize",
-                       module_args="src=some/relative/path dest=/some/absolute/path",
-                       inject)</pre></div>
+  <div class="code"><pre>sync = Sync(self._task,
+            self._connection,
+            self._play_context,
+            self._loader,
+            self._templar,
+            self._shared_loader_obj)
+sync_result = sync.run(tmp=tmp, task_vars=task_vars)</pre></div>
   
 
       
@@ -920,33 +936,12 @@ sync_result = sync.run(conn,
   
       <article>
       
-        <h3>Inject</h3>
+        <h3>Accessing global variables</h3>
         
   
   <p>
-    <code>inject</code> is the current set of Ansible variables
+    I don't have a non-hacky method for this in Ansible 2, but the following will work:
   </p>
-  
-
-  
-  <div class="code"><pre>def run(self, conn, tmp, module_name, module_args [...]
-    result = {"failed": False, "changed": False}
-    result.update(inject)
-    return ReturnData(conn=conn,
-                      comm_ok=True,
-                      result=result)
-
-
-localhost | success &gt;&gt; {
-    "ansible_ssh_user": "hank", 
-    "defaults": {}, 
-    "environment": null, 
-    "failed": false, 
-    "group_names": [], 
-    "groups": {
-        "all": [
-            "localhost"
-[...]</pre></div>
   
 
       
@@ -956,10 +951,38 @@ localhost | success &gt;&gt; {
   
       <article>
       
-        <h3>My favorite API signature</h3>
+        <h3>Accessing global variables</h3>
         
   
-  <div class="code"><pre>from ansible.callbacks import vv, vvv, vvvv</pre></div>
+  <div class="code"><pre>all_variables = self._templar.template('{{vars}}')</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Accessing global variables</h3>
+        
+  
+  <div class="code"><pre>all_variables = self._templar.template('{{vars}}')</pre></div>
+  
+
+  
+  <p>
+    This abuses Ansible's support for `debug: var=vars`, so it's likely to keep
+<br>
+
+    working, but asking the templating system to give you the current context, and
+<br>
+
+    assuming it will come out as a structure instead of a string is a definitely
+<br>
+
+    straddling a line.
+  </p>
   
 
       
@@ -972,9 +995,37 @@ localhost | success &gt;&gt; {
         <h3>Logging</h3>
         
   
-  <div class="code"><pre>from ansible.callbacks import vv, vvv, vvvv
-vv('log a message')
-vvv('log something maybe a bit less important')</pre></div>
+  <p>
+    First step, get access to the current logging object, called "display"
+  </p>
+  
+
+  
+  <div class="code"><pre>try:
+    from __main__ import display
+except ImportError:
+    from ansible.utils.display import Display
+    display = Display()</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Logging</h3>
+        
+  
+  <div class="code"><pre>display.vv('log a message')
+display.vvv('log something maybe a bit less important')</pre></div>
+  
+
+  
+  <p>
+    Corresponds to <code>-vv</code> or <code>-vvv</code> on the command line.
+  </p>
   
 
       
@@ -993,9 +1044,7 @@ vvv('log something maybe a bit less important')</pre></div>
   
 
   
-  <div class="code"><pre>from ansible.callbacks import verbose
-def vvvvv(msg, host=None):
-    return verbose(msg, host=host, caplevel=4)</pre></div>
+  <div class="code"><pre>display.verbose("Super custom verbosity", caplevel=42)</pre></div>
   
 
       
@@ -1009,21 +1058,56 @@ def vvvvv(msg, host=None):
         
   
   <p>
-    Minimum viable action plugin:
+    Ansible 2.0 supports diff mode in regular modules:
   </p>
   
 
   
-  <div class="code"><pre>class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
+  <div class="code"><pre>#!/usr/bin/python
 
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):       
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result=dict(failed=False),
-                          diff=dict(before="foo\nbar",
-                                    after="bar"))</pre></div>
+print r'{"failed": false, "changed": true, "diff": {"before": "fee\nfo\nfum\n", "after": "fee\nfi\nfum\n"}}'</pre></div>
+  
+
+  
+  <p>
+    gives you
+  </p>
+  
+
+  
+  <div class="code"><pre>changed: [localhost]
+--- before
++++ after
+@@ -1,3 +1,3 @@
+ fee
+-fo
++fi
+ fum</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Diff mode</h3>
+        
+  
+  <p>
+    Everything is done above the level of an individual action module, so you don't
+<br>
+
+    have to do anything special here either:
+  </p>
+  
+
+  
+  <div class="code"><pre>class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        # If there's no change, Ansible assumes there can be no diff
+        return {'changed': True, 'diff': { 'before': 'foo\nbar', 'after': 'bar' } }</pre></div>
   
 
   
@@ -1057,18 +1141,14 @@ ok: [localhost]</pre></div>
   
 
   
-  <div class="code"><pre># Store original transport and sudo values.
-self.original_transport = inject.get('ansible_connection', self.runner.transport)          
-self.original_sudo = self.runner.sudo
-self.transport_overridden = False
+  <div class="code"><pre>if not use_delegate and remote_transport:
+    new_stdin = self._connection._new_stdin
+    ...
+    new_connection = connection_loader.get('local', self._play_context, new_stdin)
+    self._connection = new_connection
 
-if inject.get('delegate_to') is None:
-    inject['delegate_to'] = '127.0.0.1'
-    # IF original transport is not local, override transport and disable sudo.             
-    if self.original_transport != 'local':
-        inject['ansible_connection'] = 'local'
-        self.transport_overridden = True
-        self.runner.sudo = False</pre></div>
+... 
+self._execute_module('synchronize', task_vars=task_vars)</pre></div>
   
 
       
@@ -1161,20 +1241,17 @@ $ ansible all -i localhost, -c local -m file -a "path=/var/tmp/x state=present"<
         <h3>Connection Magic for SSH</h3>
         
   
-  <div class="code"><pre>class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
+  <p>
+    Run ping, but with no ControlPersist:
+  </p>
+  
 
-        if C.ANSIBLE_SSH_ARGS is not None and len(C.ANSIBLE_SSH_ARGS):
-            # __init__ gets evaluated twice, and the latter in a nested context,
-            # so ignore both None and the empty string
-            self.runner.connector = connection.Connector(self.runner)
-
-        self.old_ssh_args = C.ANSIBLE_SSH_ARGS
-        C.ANSIBLE_SSH_ARGS = ""
-    def __del__(self):
-        C.ANSIBLE_SSH_ARGS = self.old_ssh_args
-    def run(): # ship your module</pre></div>
+  
+  <div class="code"><pre>class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        self._play_context.ssh_args = ''
+        result = self._execute_module('ping', task_vars=task_vars)
+        return result</pre></div>
   
 
       
@@ -1184,10 +1261,6 @@ $ ansible all -i localhost, -c local -m file -a "path=/var/tmp/x state=present"<
 
       <article>
         <h3>Thank you</h3>
-        
-          <div class="presenter">
-            <p class="link"><a href="http://locationlabs.github.io/ansible-action-plugins" target="_blank">http://locationlabs.github.io/ansible-action-plugins</a></p><p class="link"><a href="https://github.com/locationlabs/ansible-action-plugins" target="_blank">https://github.com/locationlabs/ansible-action-plugins</a></p>
-          </div>
         
           <div class="presenter">
             
@@ -1201,9 +1274,28 @@ $ ansible all -i localhost, -c local -m file -a "path=/var/tmp/x state=present"<
         
       </article>
 
-  
-  
-  <script src="./index_files/play.js"></script>
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+    <div id="help" style="display: none;">
+      Use the left and right arrow keys or click the left and right
+      edges of the page to navigate between slides.<br>
+      (Press 'H' or navigate to hide this message.)
+    </div>
+
+    
+    <script src="./index_files/play.js"></script>
+    
+
+    <script>
+      (function() {
+        
+        if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+          var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+          ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+          var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+        }
+      })();
+    </script>
   
 
-<div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section><link rel="stylesheet" type="text/css" href="./index_files/css"><link rel="stylesheet" type="text/css" href="./index_files/styles.css"><link rel="stylesheet" type="text/css" media="print" href="./index_files/print.css"></body></html>
+<link rel="stylesheet" type="text/css" href="./index_files/css"><link rel="stylesheet" type="text/css" href="./index_files/styles.css"></body></html>
