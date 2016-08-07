@@ -318,12 +318,13 @@ You can also divide the work into action plugin/module concerns
 
 Usage requires some boilerplate:
 
-    sync = Sync(self.runner)
-    sync_result = sync.run(conn,
-                           tmp="/tmp",
-                           module_name="synchronize",
-                           module_args="src=some/relative/path dest=/some/absolute/path",
-                           inject)
+    sync = Sync(self._task,
+                self._connection,
+                self._play_context,
+                self._loader,
+                self._templar,
+                self._shared_loader_obj)
+    sync_result = sync.run(tmp=tmp, task_vars=task_vars)
 
 * Inject
 
