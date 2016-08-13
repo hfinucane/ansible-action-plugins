@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  tasks:
+  - ping:
+  - force_ssh_args:
+  - ping:

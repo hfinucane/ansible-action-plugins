@@ -1,13 +1,7 @@
-from ansible.runner.return_data import ReturnData
+from ansible.plugins.action import ActionBase
 
 
-class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
-
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result=dict(failed=False),
-                          diff=dict(before="foo\nbar",
-                                    after="bar"))
+class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        # If there's no change, Ansible assumes there can be no diff
+        return {'changed': True, 'diff': { 'before': 'foo\nbar', 'after': 'bar' } }

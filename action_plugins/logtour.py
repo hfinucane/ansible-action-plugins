@@ -1,21 +1,17 @@
-from ansible.runner.return_data import ReturnData
-from ansible.callbacks import vv, vvv, vvvv
-from ansible.callbacks import verbose
+from ansible.plugins.action import ActionBase
+
+try:
+    from __main__ import display
+except ImportError:
+    from ansible.utils.display import Display
+    display = Display()
 
 
-def vvvvv(msg, host=None):
-    return verbose(msg, host=host, caplevel=4)
-
-
-class ActionModule(object):
-    def __init__(self, runner):
-        self.runner = runner
-
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-        vv("Kind of verbose")
-        vvv("Verbose")
-        vvvv("Lookout!")
-        vvvvv("Super custom verbosity")
-        return ReturnData(conn=conn,
-                          comm_ok=True,
-                          result={"failed": False, "changed": False})
+class ActionModule(ActionBase):
+    def run(self, tmp=None, task_vars=None):
+        display.v("a log")
+        display.vv("Kind of verbose")
+        display.vvv("Verbose")
+        display.vvvv("Lookout!")
+        display.verbose("Super custom verbosity", caplevel=6)
+        return {'msg': 'done'}
