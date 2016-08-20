@@ -7,3 +7,9 @@
   tasks:
   - sillydiff:
   - pipediff:
+  - acwrapper:
+  - all_vars:
+  - hello:
+  - logtour:
+  - my_run_once:
+  - force_ssh_args:
